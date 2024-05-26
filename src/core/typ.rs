@@ -1,7 +1,7 @@
 use crate::common::lit::LitType;
 use crate::common::name::Name;
 
-#[derive(Clone, Hash, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Clone, Debug, Hash, Eq, PartialEq, PartialOrd, Ord)]
 pub enum Type {
     Lit {
         lit: LitType,

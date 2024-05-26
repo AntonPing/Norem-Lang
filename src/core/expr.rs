@@ -3,7 +3,7 @@ use crate::common::name::Name;
 
 use super::typ::Type;
 
-#[derive(Clone, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Expr {
     Lit {
         lit: LitVal,
@@ -15,7 +15,7 @@ pub enum Expr {
     /// let x = E1 in E2
     Let {
         bind: Name,
-        body: Box<Expr>,
+        expr: Box<Expr>,
         cont: Box<Expr>,
     },
     /// fn(x1: T1, ..., xn: Tn) => E
@@ -40,7 +40,7 @@ pub enum Expr {
     /// decls D1 ... Dn in E end
     Decls {
         decls: Vec<Decl>,
-        body: Box<Expr>,
+        cont: Box<Expr>,
     },
     /// E[T1, ..., Tn]
     Inst {
@@ -65,7 +65,7 @@ pub enum Expr {
 /// begin
 ///     E
 /// end
-#[derive(Clone, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Decl {
     pub name: Name,
     pub gens: Option<Vec<Name>>,
