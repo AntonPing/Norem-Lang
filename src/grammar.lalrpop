@@ -1,0 +1,119 @@
+use std::str::FromStr;
+use crate::common::lit::{LitVal, LitType};
+use crate::common::name::Name;
+use crate::common::intern::InternStr;
+use crate::core::expr::{Expr, Decl};
+use crate::core::typ::{Type};
+
+grammar;
+
+pub Nat: usize = <s:r"[0-9]+"> => usize::from_str(s).unwrap();
+pub Int: i64 = {
+    <n: Nat> => n as i64,
+    "-" <n: Nat> => - (n as i64),
+}
+pub Float: f64 = <s:r"(-)?[0-9]+\.[0-9]+"> => f64::from_str(s).unwrap();
+pub Char: char = <s:r"'.'"> => char::from_str(&s[1..2]).unwrap();
+
+pub Bool: bool = {
+    "false" => false,
+    "true" => true,
+};
+
+pub Name: Name = <s:r"[_a-zA-Z][_a-zA-Z0-9]*"> => Name::RawId(InternStr::new(s));
+
+pub LitVal: LitVal = {
+    <x: Int> => LitVal::Int(x),
+    <x: Float> => LitVal::Float(x),
+    <x: Char> => LitVal::Char(x),
+    <x: Bool> => LitVal::Bool(x),
+};
+
+pub LitType: LitType = {
+    "Int" => LitType::TyInt,
+    "Float" => LitType::TyFloat,
+    "Char" => LitType::TyChar,
+    "Bool" => LitType::TyBool,
+};
+
+Comma<T>: Vec<T> = {
+    <mut xs: (<T> ",")*> <x: T?> => match x {
+        None => xs,
+        Some(x) => {
+            xs.push(x);
+            xs
+        }
+    }
+};
+
+pub Type: Type = {
+    <lit: LitType> => Type::Lit { lit },
+    <var: Name> => Type::Var { var },
+    "fn" <gens: ("[" <Comma<Name>> "]")?> "(" <pars: Comma<Type>> ")" "->" <res: Type> =>
+        match gens {
+            None => Type::Func { pars, res: Box::new(res) },
+            Some(gens) => Type::Forall { gens, pars, res: Box::new(res) },
+        },
+    <seals: ("[" <Comma<Name>> "]")?> "(" <flds: Comma<Type>> ")" =>
+        match seals {
+            None => Type::Tup { flds },
+            Some(seals) => Type::Exist { seals, flds }
+        },
+};
+
+pub Expr: Expr = {
+    <left: ExprLeft> <rights: ExprRight*> =>
+        rights.into_iter().fold(
+            left,
+            |acc, x| {
+                match x {
+                    Expr::App { func: _, args } => 
+                        Expr::App { func: Box::new(acc), args },
+                    Expr::Sel { expr: _, idx } =>
+                        Expr::Sel { expr: Box::new(acc), idx },
+                    Expr::Inst { expr: _, typs } =>
+                        Expr::Inst { expr: Box::new(acc), typs },
+                    _ => unsafe { std::hint::unreachable_unchecked() },
+                }
+            }
+        ),
+    "let" <bind: Name> "=" <expr: Expr> "in" <cont: Expr> =>
+        Expr::Let { bind, expr: Box::new(expr), cont: Box::new(cont)},
+    "fn" "(" <pars: Comma<(<Name> ":" <Type>)>> ")" "=>" <body: Expr> =>
+        Expr::Func { pars, body: Box::new(body) },
+    "letrec" <decls: Decl*> "in" <cont: Expr> "end" =>
+        Expr::Decls { decls, cont: Box::new(cont) },
+    "[" <seals: Comma<(<Name> "=" <Type>)>> "]" "(" <flds: Comma<Expr>> ")" =>
+        Expr::Pack { seals, flds },
+    "unpack" <bind: Name> "[" <opens: Comma<Name>> "]" "=" <expr: Expr> "in" <cont: Expr> =>
+        Expr::Unpack { bind, opens, expr: Box::new(expr), cont: Box::new(cont) }
+
+}
+
+pub ExprLeft: Expr = {
+    <lit: LitVal> => Expr::Lit { lit },
+    <var: Name> => Expr::Var { var },
+    "(" <flds: Comma<Expr>> ")" => {
+        match flds.len() {
+            0 => todo!(), // unit in the future?
+            1 => flds.into_iter().next().unwrap(),
+            _n => Expr::Tup { flds },
+        }
+    },
+}
+
+pub ExprRight: Expr = {
+    // put dummy value 0 on the left side
+    "(" <args: Comma<Expr>> ")" =>
+        Expr::App { func: Box::new(Expr::Lit { lit : LitVal::Int(0)}), args },
+    "." <idx: Nat> =>
+        Expr::Sel { expr: Box::new(Expr::Lit { lit : LitVal::Int(0)}), idx },
+    "[" <typs: Comma<Type>> "]" =>
+        Expr::Inst { expr: Box::new(Expr::Lit { lit : LitVal::Int(0)}), typs },
+}
+
+pub Decl: Decl = {
+    "function" <name: Name> <gens: ("[" <Comma<Name>> "]")?> "(" <pars: Comma<(<Name> ":" <Type>)>> ")"
+        "->" <res: Type> "begin" <body: Expr> "end" =>
+            Decl { name, gens, pars, res, body }
+}
