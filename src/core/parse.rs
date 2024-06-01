@@ -23,9 +23,9 @@ end
 "#;
 
 static S3: &'static str = r#"
-let counter = [T=Int](42, fn(x: Int) => x) in
-unpack x[T] = counter in
-x.1(x.0)
+let counter = pack (42, fn(x: Int) => x) as [T=Int](Int, fn(Int) -> Int) in
+unpack counter2[T] = counter in
+counter2.1(counter2.0)
 "#;
 
 #[test]

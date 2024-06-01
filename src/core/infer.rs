@@ -106,19 +106,27 @@ pub fn check(env: &mut Env, expr: &Expr) -> Result<Type, InferError> {
                 Err(InferError::Error)
             }
         }
-        Expr::Pack { seals, flds } => {
-            for (seal, typ) in seals.iter() {
-                env.push_back((*seal, typ.clone()));
+        Expr::Pack { expr, seals, flds } => {
+            let expr = check(env, expr)?;
+            match expr {
+                Type::Tup { flds: flds2 } => {
+                    if flds.len() == flds2.len() {
+                        let mut map: HashMap<Name, Type> = seals.iter().cloned().collect();
+                        for (fld, fld2) in flds.iter().zip(flds2.iter()) {
+                            if subst(&mut map, fld) != *fld2 {
+                                return Err(InferError::Error);
+                            }
+                        }
+                        Ok(Type::Exist {
+                            seals: seals.iter().map(|(x, _)| *x).collect(),
+                            flds: flds.clone(),
+                        })
+                    } else {
+                        Err(InferError::Error)
+                    }
+                }
+                _ => Err(InferError::Error),
             }
-            let flds = flds
-                .iter()
-                .map(|fld| check(env, fld))
-                .collect::<Result<Vec<_>, _>>()?;
-            for _ in seals.iter() {
-                env.pop_back();
-            }
-            let seals = seals.iter().map(|(x, _)| *x).collect();
-            Ok(Type::Exist { seals, flds })
         }
         Expr::Unpack {
             bind,

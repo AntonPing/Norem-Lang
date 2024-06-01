@@ -93,13 +93,11 @@ pub fn eval(env: &mut Env, expr: &Expr) -> Result<Value, EvalError> {
             eval(&mut env3, cont)
         }
         Expr::Inst { expr, typs: _ } => eval(env, expr),
-        Expr::Pack { seals: _, flds } => {
-            let flds2 = flds
-                .iter()
-                .map(|fld| eval(env, fld))
-                .collect::<Result<Vec<_>, _>>()?;
-            Ok(Value::Tup(flds2))
-        }
+        Expr::Pack {
+            expr,
+            seals: _,
+            flds: _,
+        } => eval(env, expr),
         Expr::Unpack {
             bind,
             opens: _,

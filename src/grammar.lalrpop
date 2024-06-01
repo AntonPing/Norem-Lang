@@ -83,8 +83,8 @@ pub Expr: Expr = {
         Expr::Func { pars, body: Box::new(body) },
     "letrec" <decls: Decl*> "in" <cont: Expr> "end" =>
         Expr::Decls { decls, cont: Box::new(cont) },
-    "[" <seals: Comma<(<Name> "=" <Type>)>> "]" "(" <flds: Comma<Expr>> ")" =>
-        Expr::Pack { seals, flds },
+    "pack" <expr: Expr> "as" "[" <seals: Comma<(<Name> "=" <Type>)>> "]" "(" <flds: Comma<Type>> ")" =>
+        Expr::Pack { expr: Box::new(expr), seals, flds },
     "unpack" <bind: Name> "[" <opens: Comma<Name>> "]" "=" <expr: Expr> "in" <cont: Expr> =>
         Expr::Unpack { bind, opens, expr: Box::new(expr), cont: Box::new(cont) }
 

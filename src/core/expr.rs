@@ -47,10 +47,11 @@ pub enum Expr {
         expr: Box<Expr>,
         typs: Vec<Type>,
     },
-    /// [X1=T1, ..., Xn=Tn](E1, ..., En)
+    /// pack E as [X1=T1, ..., Xn=Tn](U1, ..., Un)
     Pack {
+        expr: Box<Expr>,
         seals: Vec<(Name, Type)>,
-        flds: Vec<Expr>,
+        flds: Vec<Type>,
     },
     /// unpack x[X1, ..., Xn] = E1 in E2
     Unpack {
