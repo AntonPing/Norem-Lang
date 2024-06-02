@@ -1,0 +1,13 @@
+function fst[T, U](x: (T, U)) -> T
+begin
+    x.0
+end
+function snd[T, U](x: (T, U)) -> U
+begin
+    x.1
+end
+function main() -> Int
+begin
+    let x = (('a', 42), true) in
+    snd(fst(x))
+end
