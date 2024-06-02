@@ -4,8 +4,7 @@ use std::rc::Rc;
 use crate::common::lit::LitVal;
 use crate::common::name::Name;
 
-use super::expr::Expr;
-use super::typ::Type;
+use super::core::{Expr, Type};
 
 use im::Vector;
 
@@ -83,7 +82,7 @@ pub fn eval(env: &mut Env, expr: &Expr) -> Result<Value, EvalError> {
                 Err(EvalError::Error)
             }
         }
-        Expr::Decls { decls, cont } => {
+        Expr::Letrec { decls, cont } => {
             let env2 = Rc::new(RefCell::new(env.clone()));
             for decl in decls {
                 let clos = Value::Clos(env2.clone(), decl.pars.clone(), Rc::new(decl.body.clone()));

@@ -1,7 +1,5 @@
-use crate::common::lit::LitVal;
+use crate::common::lit::{LitType, LitVal};
 use crate::common::name::Name;
-
-use super::typ::Type;
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Expr {
@@ -37,8 +35,8 @@ pub enum Expr {
         expr: Box<Expr>,
         idx: usize,
     },
-    /// decls D1 ... Dn in E end
-    Decls {
+    /// letrec D1 ... Dn in E end
+    Letrec {
         decls: Vec<Decl>,
         cont: Box<Expr>,
     },
@@ -59,6 +57,37 @@ pub enum Expr {
         opens: Vec<Name>,
         expr: Box<Expr>,
         cont: Box<Expr>,
+    },
+}
+
+#[derive(Clone, Debug, Hash, Eq, PartialEq, PartialOrd, Ord)]
+pub enum Type {
+    Lit {
+        lit: LitType,
+    },
+    /// x
+    Var {
+        var: Name,
+    },
+    /// fn(T1, ..., Tn) -> U
+    Func {
+        pars: Vec<Type>,
+        res: Box<Type>,
+    },
+    /// (T1, ..., Tn)
+    Tup {
+        flds: Vec<Type>,
+    },
+    /// fn[X1, ..., Xn](T1, ..., Tn) -> U
+    Forall {
+        gens: Vec<Name>,
+        pars: Vec<Type>,
+        res: Box<Type>,
+    },
+    /// [X1, ..., Xn](T1, ..., Tn)
+    Exist {
+        seals: Vec<Name>,
+        flds: Vec<Type>,
     },
 }
 

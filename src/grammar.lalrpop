@@ -2,8 +2,7 @@ use std::str::FromStr;
 use crate::common::lit::{LitVal, LitType};
 use crate::common::name::Name;
 use crate::common::intern::InternStr;
-use crate::core::expr::{Expr, Decl};
-use crate::core::typ::{Type};
+use crate::core::core::{Expr, Type, Decl};
 
 grammar;
 
@@ -82,7 +81,7 @@ pub Expr: Expr = {
     "fn" "(" <pars: Comma<(<Name> ":" <Type>)>> ")" "=>" <body: Expr> =>
         Expr::Func { pars, body: Box::new(body) },
     "letrec" <decls: Decl*> "in" <cont: Expr> "end" =>
-        Expr::Decls { decls, cont: Box::new(cont) },
+        Expr::Letrec { decls, cont: Box::new(cont) },
     "pack" <expr: Expr> "as" "[" <seals: Comma<(<Name> "=" <Type>)>> "]" "(" <flds: Comma<Type>> ")" =>
         Expr::Pack { expr: Box::new(expr), seals, flds },
     "unpack" <bind: Name> "[" <opens: Comma<Name>> "]" "=" <expr: Expr> "in" <cont: Expr> =>

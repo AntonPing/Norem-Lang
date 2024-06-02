@@ -1,7 +1,6 @@
 use crate::common::name::Name;
 
-use super::expr::{Decl, Expr};
-use super::typ::Type;
+use super::core::{Decl, Expr, Type};
 
 use im::HashMap;
 use im::Vector;
@@ -77,7 +76,7 @@ pub fn check(env: &mut Env, expr: &Expr) -> Result<Type, InferError> {
                 Err(InferError::Error)
             }
         }
-        Expr::Decls { decls, cont } => {
+        Expr::Letrec { decls, cont } => {
             for decl in decls.iter() {
                 env.push_back((decl.name, get_decl_type(decl)));
             }
