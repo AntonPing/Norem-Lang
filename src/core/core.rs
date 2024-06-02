@@ -103,3 +103,9 @@ pub struct Decl {
     pub res: Type,
     pub body: Expr,
 }
+
+/// toplevel program
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub struct Program {
+    pub decls: Vec<Decl>,
+}

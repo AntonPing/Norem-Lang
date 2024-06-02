@@ -1,6 +1,13 @@
-use lalrpop_util::lalrpop_mod;
+use crate::core::core;
+use lalrpop_util::{lalrpop_mod, lexer::Token, ParseError};
 
 lalrpop_mod!(pub grammar);
+
+pub fn parse_program<'src>(
+    s: &'src str,
+) -> Result<core::Program, ParseError<usize, Token<'_>, &'static str>> {
+    grammar::ProgramParser::new().parse(s)
+}
 
 static S1: &'static str = r#"
 fn(f: fn[T](T) -> T, x: Int) => f[Int](x)
@@ -39,12 +46,7 @@ fn grammar_test() {
         crate::common::name::Name::RawId(crate::common::intern::InternStr::new("x"))
     );
 
-    let res = grammar::ExprParser::new().parse(&S1);
-    println!("{:#?}", res);
-
-    let res = grammar::ExprParser::new().parse(&S2);
-    println!("{:#?}", res);
-
-    let res = grammar::ExprParser::new().parse(&S3);
-    println!("{:#?}", res);
+    assert!(grammar::ExprParser::new().parse(&S1).is_ok());
+    assert!(grammar::ExprParser::new().parse(&S2).is_ok());
+    assert!(grammar::ExprParser::new().parse(&S3).is_ok());
 }

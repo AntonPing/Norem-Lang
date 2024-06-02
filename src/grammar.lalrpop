@@ -2,7 +2,7 @@ use std::str::FromStr;
 use crate::common::lit::{LitVal, LitType};
 use crate::common::name::Name;
 use crate::common::intern::InternStr;
-use crate::core::core::{Expr, Type, Decl};
+use crate::core::core::{Expr, Type, Decl, Program};
 
 grammar;
 
@@ -115,4 +115,9 @@ pub Decl: Decl = {
     "function" <name: Name> <gens: ("[" <Comma<Name>> "]")?> "(" <pars: Comma<(<Name> ":" <Type>)>> ")"
         "->" <res: Type> "begin" <body: Expr> "end" =>
             Decl { name, gens, pars, res, body }
+}
+
+pub Program: Program = {
+    <decls: Decl*> =>
+        Program { decls }
 }
