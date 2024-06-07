@@ -74,7 +74,23 @@ pub fn check_expr(tyenv: &mut TyEnv, env: &mut Env, expr: &Expr) -> Result<Type,
             .get(&var)
             .cloned()
             .ok_or(InferError::ValVarNotInScope(*var)),
-        Expr::Prim { prim, args } => todo!(),
+        Expr::Prim { prim, args } => {
+            if let Type::Func { pars, res } = prim.get_type() {
+                if pars.len() == args.len() {
+                    for (par, arg) in pars.iter().zip(args.iter()) {
+                        let arg_ty = check_expr(tyenv, env, arg)?;
+                        if *par != arg_ty {
+                            return Err(InferError::CantUnifyType(par.clone(), arg_ty.clone()));
+                        }
+                    }
+                    Ok(*res)
+                } else {
+                    Err(InferError::AppLengthNotMatch(args.clone(), pars.clone()))
+                }
+            } else {
+                panic!("primitives should be functions!")
+            }
+        }
         Expr::Let { bind, expr, cont } => {
             let expr_ty = check_expr(tyenv, env, expr)?;
             let mut env2 = env.clone();

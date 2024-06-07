@@ -1,10 +1,10 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use super::core::{Expr, Type};
 use crate::common::lit::LitVal;
 use crate::common::name::Name;
-
-use super::core::{Expr, Type};
+use crate::common::prim::Prim;
 
 use im::Vector;
 
@@ -31,7 +31,86 @@ pub fn eval(env: &mut Env, expr: &Expr) -> Result<Value, EvalError> {
     match expr {
         Expr::Lit { lit } => Ok(Value::Lit(*lit)),
         Expr::Var { var } => lookup(env, var).ok_or(EvalError::Error),
-        Expr::Prim { prim, args } => todo!(),
+        Expr::Prim { prim, args } => {
+            let args: Vec<Value> = args
+                .iter()
+                .map(|arg| eval(env, arg))
+                .collect::<Result<Vec<_>, _>>()?;
+            match (prim, &args[..]) {
+                (Prim::INeg, &[Value::Lit(LitVal::Int(arg1))]) => {
+                    Ok(Value::Lit(LitVal::Int(-arg1)))
+                }
+                (Prim::IAdd, &[Value::Lit(LitVal::Int(arg1)), Value::Lit(LitVal::Int(arg2))]) => {
+                    Ok(Value::Lit(LitVal::Int(arg1 + arg2)))
+                }
+                (Prim::ISub, &[Value::Lit(LitVal::Int(arg1)), Value::Lit(LitVal::Int(arg2))]) => {
+                    Ok(Value::Lit(LitVal::Int(arg1 - arg2)))
+                }
+                (Prim::IMul, &[Value::Lit(LitVal::Int(arg1)), Value::Lit(LitVal::Int(arg2))]) => {
+                    Ok(Value::Lit(LitVal::Int(arg1 * arg2)))
+                }
+                (Prim::IDiv, &[Value::Lit(LitVal::Int(arg1)), Value::Lit(LitVal::Int(arg2))]) => {
+                    Ok(Value::Lit(LitVal::Int(arg1 / arg2)))
+                }
+                (Prim::IRem, &[Value::Lit(LitVal::Int(arg1)), Value::Lit(LitVal::Int(arg2))]) => {
+                    Ok(Value::Lit(LitVal::Int(arg1 % arg2)))
+                }
+                (Prim::FNeg, &[Value::Lit(LitVal::Float(arg1))]) => {
+                    Ok(Value::Lit(LitVal::Float(-arg1)))
+                }
+                (
+                    Prim::FAdd,
+                    &[Value::Lit(LitVal::Float(arg1)), Value::Lit(LitVal::Float(arg2))],
+                ) => Ok(Value::Lit(LitVal::Float(arg1 + arg2))),
+                (
+                    Prim::FSub,
+                    &[Value::Lit(LitVal::Float(arg1)), Value::Lit(LitVal::Float(arg2))],
+                ) => Ok(Value::Lit(LitVal::Float(arg1 - arg2))),
+                (
+                    Prim::FMul,
+                    &[Value::Lit(LitVal::Float(arg1)), Value::Lit(LitVal::Float(arg2))],
+                ) => Ok(Value::Lit(LitVal::Float(arg1 * arg2))),
+                (
+                    Prim::FDiv,
+                    &[Value::Lit(LitVal::Float(arg1)), Value::Lit(LitVal::Float(arg2))],
+                ) => Ok(Value::Lit(LitVal::Float(arg1 / arg2))),
+                (Prim::IScan | Prim::FScan | Prim::CScan, &[]) => {
+                    let mut input = String::new();
+                    std::io::stdin()
+                        .read_line(&mut input)
+                        .expect("Failed to read line");
+                    let res = match prim {
+                        Prim::IScan => {
+                            LitVal::Int(input.trim().parse().expect("Input is not an integer!"))
+                        }
+                        Prim::FScan => LitVal::Float(
+                            input
+                                .trim()
+                                .parse()
+                                .expect("Input is not a floating number!"),
+                        ),
+                        Prim::CScan => {
+                            LitVal::Char(input.trim().parse().expect("Input is not a charactor!"))
+                        }
+                        _ => unreachable!(),
+                    };
+                    Ok(Value::Lit(res))
+                }
+                (Prim::IPrint, &[Value::Lit(LitVal::Int(arg1))]) => {
+                    println!("{}", arg1);
+                    Ok(Value::Lit(LitVal::Unit))
+                }
+                (Prim::FPrint, &[Value::Lit(LitVal::Float(arg1))]) => {
+                    println!("{}", arg1);
+                    Ok(Value::Lit(LitVal::Unit))
+                }
+                (Prim::CPrint, &[Value::Lit(LitVal::Char(arg1))]) => {
+                    println!("{}", arg1);
+                    Ok(Value::Lit(LitVal::Unit))
+                }
+                _ => Err(EvalError::Error),
+            }
+        }
         Expr::Let {
             bind,
             expr: body,
