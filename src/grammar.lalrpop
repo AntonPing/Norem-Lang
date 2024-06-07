@@ -55,7 +55,11 @@ pub Type: Type = {
         },
     <seals: ("[" <Comma<Name>> "]")?> "(" <flds: Comma<Type>> ")" =>
         match seals {
-            None => Type::Tup { flds },
+            None => match flds.len() {
+                0 => Type::Lit { lit: LitType::TyUnit },
+                1 => flds.into_iter().next().unwrap(),
+                _n => Type::Tup { flds },
+            },
             Some(seals) => Type::Exist { seals, flds }
         },
 };
@@ -94,7 +98,7 @@ pub ExprLeft: Expr = {
     <var: Name> => Expr::Var { var },
     "(" <flds: Comma<Expr>> ")" => {
         match flds.len() {
-            0 => todo!(), // unit in the future?
+            0 => Expr::Lit { lit: LitVal::Unit },
             1 => flds.into_iter().next().unwrap(),
             _n => Expr::Tup { flds },
         }

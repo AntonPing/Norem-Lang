@@ -4,6 +4,7 @@ pub enum LitType {
     TyFloat,
     TyChar,
     TyBool,
+    TyUnit,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
@@ -12,6 +13,7 @@ pub enum LitVal {
     Float(f64),
     Char(char),
     Bool(bool),
+    Unit,
 }
 
 impl LitVal {
@@ -21,6 +23,7 @@ impl LitVal {
             LitVal::Float(_) => LitType::TyFloat,
             LitVal::Char(_) => LitType::TyChar,
             LitVal::Bool(_) => LitType::TyBool,
+            LitVal::Unit => LitType::TyUnit,
         }
     }
 }

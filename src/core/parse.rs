@@ -35,6 +35,12 @@ unpack counter2[T] = counter in
 counter2.1(counter2.0)
 "#;
 
+static S4: &'static str = r#"
+let x = ((), ()) in
+let y = pack x as [T=()](T, T) in
+x
+"#;
+
 #[test]
 fn grammar_test() {
     assert_eq!(grammar::BoolParser::new().parse("false").unwrap(), false);
@@ -49,4 +55,5 @@ fn grammar_test() {
     assert!(grammar::ExprParser::new().parse(&S1).is_ok());
     assert!(grammar::ExprParser::new().parse(&S2).is_ok());
     assert!(grammar::ExprParser::new().parse(&S3).is_ok());
+    assert!(grammar::ExprParser::new().parse(&S4).is_ok());
 }
