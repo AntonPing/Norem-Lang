@@ -6,7 +6,7 @@ pub fn test_file<S: AsRef<Path>>(path: S) -> Result<String, io::Error> {
     let src = fs::read_to_string(&path)?;
     let mut res = String::new();
     let prog = core::parse::parse_program(&src);
-    let _prog = match prog {
+    let prog = match prog {
         Ok(prog) => {
             writeln!(&mut res, "{:#?}", prog).unwrap();
             prog
@@ -15,6 +15,12 @@ pub fn test_file<S: AsRef<Path>>(path: S) -> Result<String, io::Error> {
             writeln!(&mut res, "{}", err).unwrap();
             return Ok(res);
         }
+    };
+
+    let typ = core::check::check_prog(&prog);
+    match typ {
+        Ok(()) => writeln!(&mut res, "typecheck passed!").unwrap(),
+        Err(err) => writeln!(&mut res, "typecheck failed! {:?}", err).unwrap(),
     };
     Ok(res)
 }
@@ -160,17 +166,44 @@ fn test_pair() {
                             ],
                         },
                         cont: App {
-                            func: Var {
-                                var: RawId(
-                                    snd,
-                                ),
+                            func: Inst {
+                                expr: Var {
+                                    var: RawId(
+                                        snd,
+                                    ),
+                                },
+                                typs: [
+                                    Lit {
+                                        lit: TyChar,
+                                    },
+                                    Lit {
+                                        lit: TyInt,
+                                    },
+                                ],
                             },
                             args: [
                                 App {
-                                    func: Var {
-                                        var: RawId(
-                                            fst,
-                                        ),
+                                    func: Inst {
+                                        expr: Var {
+                                            var: RawId(
+                                                fst,
+                                            ),
+                                        },
+                                        typs: [
+                                            Tup {
+                                                flds: [
+                                                    Lit {
+                                                        lit: TyChar,
+                                                    },
+                                                    Lit {
+                                                        lit: TyInt,
+                                                    },
+                                                ],
+                                            },
+                                            Lit {
+                                                lit: TyBool,
+                                            },
+                                        ],
                                     },
                                     args: [
                                         Var {
@@ -186,7 +219,7 @@ fn test_pair() {
                 },
             ],
         }
+        typecheck passed!
     "#]];
-    let expect = expect;
     expect.assert_eq(&actual)
 }

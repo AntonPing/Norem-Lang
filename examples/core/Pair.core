@@ -9,5 +9,5 @@ end
 function main() -> Int
 begin
     let x = (('a', 42), true) in
-    snd(fst(x))
+    snd[Char, Int](fst[(Char, Int), Bool](x))
 end
