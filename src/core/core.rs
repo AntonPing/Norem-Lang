@@ -1,5 +1,6 @@
 use crate::common::lit::{LitType, LitVal};
 use crate::common::name::Name;
+use crate::common::prim::Prim;
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Expr {
@@ -9,6 +10,11 @@ pub enum Expr {
     /// x
     Var {
         var: Name,
+    },
+    /// @prim(E1, ..., En)
+    Prim {
+        prim: Prim,
+        args: Vec<Expr>,
     },
     /// let x = E1 in E2
     Let {

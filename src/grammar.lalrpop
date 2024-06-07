@@ -1,5 +1,6 @@
 use std::str::FromStr;
 use crate::common::lit::{LitVal, LitType};
+use crate::common::prim::Prim;
 use crate::common::name::Name;
 use crate::common::intern::InternStr;
 use crate::core::core::{Expr, Type, Decl, Program};
@@ -34,6 +35,30 @@ pub LitType: LitType = {
     "Char" => LitType::TyChar,
     "Bool" => LitType::TyBool,
 };
+
+pub Prim: Prim = {
+    "@ineg" => Prim::INeg,
+    "@iadd" => Prim::IAdd,
+    "@isub" => Prim::ISub,
+    "@imul" => Prim::IMul,
+    "@idiv" => Prim::IDiv,
+    "@irem" => Prim::IRem,
+    "@fneg" => Prim::FNeg,
+    "@fadd" => Prim::FAdd,
+    "@fsub" => Prim::FSub,
+    "@fmul" => Prim::FMul,
+    "@fdiv" => Prim::FDiv,
+    "@bnot" => Prim::BNot,
+    "@band" => Prim::BAnd,
+    "@bor" => Prim::BOr,
+    "@bxor" => Prim::BXor,
+    "@iscan" => Prim::IScan,
+    "@fscan" => Prim::FScan,
+    "@cscan" => Prim::CScan,
+    "@iprint" => Prim::IPrint,
+    "@fprint" => Prim::FPrint,
+    "@cprint" => Prim::CPrint,
+}
 
 Comma<T>: Vec<T> = {
     <mut xs: (<T> ",")*> <x: T?> => match x {
@@ -96,6 +121,7 @@ pub Expr: Expr = {
 pub ExprLeft: Expr = {
     <lit: LitVal> => Expr::Lit { lit },
     <var: Name> => Expr::Var { var },
+    <prim: Prim> "(" <args: Comma<Expr>> ")" => Expr::Prim { prim, args},
     "(" <flds: Comma<Expr>> ")" => {
         match flds.len() {
             0 => Expr::Lit { lit: LitVal::Unit },

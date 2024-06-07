@@ -41,6 +41,12 @@ let y = pack x as [T=()](T, T) in
 x
 "#;
 
+static S5: &'static str = r#"
+let x = @iadd(42, 43) in
+let y = @iprint(x) in
+x
+"#;
+
 #[test]
 fn grammar_test() {
     assert_eq!(grammar::BoolParser::new().parse("false").unwrap(), false);
@@ -56,4 +62,5 @@ fn grammar_test() {
     assert!(grammar::ExprParser::new().parse(&S2).is_ok());
     assert!(grammar::ExprParser::new().parse(&S3).is_ok());
     assert!(grammar::ExprParser::new().parse(&S4).is_ok());
+    assert!(grammar::ExprParser::new().parse(&S5).is_ok());
 }

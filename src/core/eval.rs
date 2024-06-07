@@ -31,6 +31,7 @@ pub fn eval(env: &mut Env, expr: &Expr) -> Result<Value, EvalError> {
     match expr {
         Expr::Lit { lit } => Ok(Value::Lit(*lit)),
         Expr::Var { var } => lookup(env, var).ok_or(EvalError::Error),
+        Expr::Prim { prim, args } => todo!(),
         Expr::Let {
             bind,
             expr: body,

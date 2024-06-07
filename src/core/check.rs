@@ -74,6 +74,7 @@ pub fn check_expr(tyenv: &mut TyEnv, env: &mut Env, expr: &Expr) -> Result<Type,
             .get(&var)
             .cloned()
             .ok_or(InferError::ValVarNotInScope(*var)),
+        Expr::Prim { prim, args } => todo!(),
         Expr::Let { bind, expr, cont } => {
             let expr_ty = check_expr(tyenv, env, expr)?;
             let mut env2 = env.clone();
