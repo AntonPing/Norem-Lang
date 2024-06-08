@@ -1,20 +1,15 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use super::core::{Expr, Type};
+use super::core::{Expr, Program, Type};
+use crate::common::intern::InternStr;
 use crate::common::lit::LitVal;
 use crate::common::name::Name;
 use crate::common::prim::{Compare, Prim};
 
-use im::Vector;
+use im::HashMap;
 
-type Env = Vector<(Name, Value)>;
-fn lookup(env: &Env, key: &Name) -> Option<Value> {
-    env.iter()
-        .rev()
-        .find(|(k, _v)| *k == *key)
-        .map(|(_k, v)| v.clone())
-}
+type Env = HashMap<Name, Value>;
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Value {
@@ -23,20 +18,31 @@ pub enum Value {
     Tup(Vec<Value>),
 }
 
+#[derive(Clone, Debug)]
 pub enum EvalError {
     Error,
+    ValVarNotInScope(Name),
+    PrimGotStuck(Prim, Vec<Value>),
+    AppNotAFunction(Value),
+    AppLengthNotMatch(Vec<Value>, Vec<(Name, Type)>),
+    SelNotATuple(Value),
+    SelIndexOutOfBound(Value, usize),
+    IfteNotABool(Value),
 }
 
 pub fn eval(env: &mut Env, expr: &Expr) -> Result<Value, EvalError> {
     match expr {
         Expr::Lit { lit } => Ok(Value::Lit(*lit)),
-        Expr::Var { var } => lookup(env, var).ok_or(EvalError::Error),
+        Expr::Var { var } => env
+            .get(var)
+            .cloned()
+            .ok_or(EvalError::ValVarNotInScope(*var)),
         Expr::Prim { prim, args } => {
-            let args: Vec<Value> = args
+            let args_val: Vec<Value> = args
                 .iter()
                 .map(|arg| eval(env, arg))
                 .collect::<Result<Vec<_>, _>>()?;
-            match (prim, &args[..]) {
+            match (prim, &args_val[..]) {
                 (Prim::INeg, &[Value::Lit(LitVal::Int(arg1))]) => {
                     Ok(Value::Lit(LitVal::Int(-arg1)))
                 }
@@ -141,19 +147,15 @@ pub fn eval(env: &mut Env, expr: &Expr) -> Result<Value, EvalError> {
                     println!("{}", arg1);
                     Ok(Value::Lit(LitVal::Unit))
                 }
-                _ => Err(EvalError::Error),
+                (prim, _) => Err(EvalError::PrimGotStuck(*prim, args_val.clone())),
             }
         }
-        Expr::Let {
-            bind,
-            expr: body,
-            cont,
-        } => {
-            let expr2 = eval(env, body)?;
-            env.push_back((*bind, expr2));
-            let cont2 = eval(env, cont)?;
-            env.pop_back();
-            Ok(cont2)
+        Expr::Let { bind, expr, cont } => {
+            let expr_val = eval(env, expr)?;
+            let mut env2 = env.clone();
+            env2.insert(*bind, expr_val);
+            let cont_val = eval(&mut env2, cont)?;
+            Ok(cont_val)
         }
         Expr::Func { pars, body } => Ok(Value::Clos(
             Rc::new(RefCell::new(env.clone())),
@@ -161,45 +163,47 @@ pub fn eval(env: &mut Env, expr: &Expr) -> Result<Value, EvalError> {
             Rc::new(*body.clone()),
         )),
         Expr::App { func, args } => {
-            let func2 = eval(env, func)?;
-            if let Value::Clos(env2, pars, body) = func2 {
-                if pars.len() == args.len() {
+            let func = eval(env, func)?;
+            let args_val: Vec<Value> = args
+                .iter()
+                .map(|arg| eval(env, arg))
+                .collect::<Result<_, _>>()?;
+            if let Value::Clos(env2, pars, body) = func {
+                if pars.len() == args_val.len() {
+                    let mut env3 = env2.borrow().clone();
                     for ((par, _typ), arg) in pars.iter().zip(args.iter()) {
-                        let arg2 = eval(env, arg)?;
-                        env.push_back((*par, arg2));
+                        let arg_val = eval(env, arg)?;
+                        env3.insert(*par, arg_val);
                     }
-                    let body2 = eval(&mut env2.borrow().clone(), &body)?;
-                    for _ in pars {
-                        env.pop_back();
-                    }
-                    Ok(body2)
+                    let body_val = eval(&mut env3, &body)?;
+                    Ok(body_val)
                 } else {
-                    Err(EvalError::Error)
+                    Err(EvalError::AppLengthNotMatch(args_val, pars))
                 }
             } else {
-                Err(EvalError::Error)
+                Err(EvalError::AppNotAFunction(func))
             }
         }
         Expr::Tup { flds } => {
-            let flds2 = flds
+            let flds_val = flds
                 .iter()
                 .map(|fld| eval(env, fld))
                 .collect::<Result<Vec<_>, _>>()?;
-            Ok(Value::Tup(flds2))
+            Ok(Value::Tup(flds_val))
         }
         Expr::Sel { expr, idx } => {
-            let expr2 = eval(env, expr)?;
-            if let Value::Tup(flds) = expr2 {
+            let expr_val = eval(env, expr)?;
+            if let Value::Tup(flds) = expr_val {
                 flds.iter().nth(*idx).cloned().ok_or(EvalError::Error)
             } else {
-                Err(EvalError::Error)
+                Err(EvalError::SelNotATuple(expr_val))
             }
         }
         Expr::Letrec { decls, cont } => {
             let env2 = Rc::new(RefCell::new(env.clone()));
             for decl in decls {
                 let clos = Value::Clos(env2.clone(), decl.pars.clone(), Rc::new(decl.body.clone()));
-                env2.borrow_mut().push_back((decl.name, clos));
+                env2.borrow_mut().insert(decl.name, clos);
             }
             let mut env3 = env2.borrow().clone();
             eval(&mut env3, cont)
@@ -216,19 +220,44 @@ pub fn eval(env: &mut Env, expr: &Expr) -> Result<Value, EvalError> {
             expr,
             cont,
         } => {
-            let expr2 = eval(env, expr)?;
-            env.push_back((*bind, expr2));
-            let cont2 = eval(env, cont)?;
-            env.pop_back();
-            Ok(cont2)
+            let expr_val = eval(env, expr)?;
+            let mut env2 = env.clone();
+            env2.insert(*bind, expr_val);
+            let cont_val = eval(&mut env2, cont)?;
+            Ok(cont_val)
         }
         Expr::Ifte { cond, trbr, flbr } => {
-            let cond = eval(env, cond)?;
-            match cond {
+            let cond_val = eval(env, cond)?;
+            match cond_val {
                 Value::Lit(LitVal::Bool(true)) => eval(env, trbr),
                 Value::Lit(LitVal::Bool(false)) => eval(env, flbr),
-                _ => Err(EvalError::Error),
+                _ => Err(EvalError::IfteNotABool(cond_val)),
             }
         }
+    }
+}
+
+pub fn eval_prog(prog: &Program) -> Result<Value, EvalError> {
+    let env = Rc::new(RefCell::new(HashMap::new()));
+    let mut has_entry = false;
+    for decl in prog.decls.iter() {
+        let clos = Value::Clos(env.clone(), decl.pars.clone(), Rc::new(decl.body.clone()));
+        env.borrow_mut().insert(decl.name, clos);
+        if decl.name == Name::RawId(InternStr::new("main")) {
+            has_entry = true;
+        }
+    }
+    if has_entry {
+        eval(
+            &mut env.borrow().clone(),
+            &Expr::App {
+                func: Box::new(Expr::Var {
+                    var: Name::RawId(InternStr::new("main")),
+                }),
+                args: Vec::new(),
+            },
+        )
+    } else {
+        Ok(Value::Lit(LitVal::Unit))
     }
 }
