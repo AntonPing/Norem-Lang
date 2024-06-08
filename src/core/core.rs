@@ -64,6 +64,12 @@ pub enum Expr {
         expr: Box<Expr>,
         cont: Box<Expr>,
     },
+    /// if E1 then E2 else E3
+    Ifte {
+        cond: Box<Expr>,
+        trbr: Box<Expr>,
+        flbr: Box<Expr>,
+    },
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq, PartialOrd, Ord)]

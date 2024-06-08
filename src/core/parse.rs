@@ -47,6 +47,10 @@ let y = @iprint(x) in
 x
 "#;
 
+static S6: &'static str = r#"
+if true then 42 else 43
+"#;
+
 #[test]
 fn grammar_test() {
     assert_eq!(grammar::BoolParser::new().parse("false").unwrap(), false);
@@ -63,4 +67,5 @@ fn grammar_test() {
     assert!(grammar::ExprParser::new().parse(&S3).is_ok());
     assert!(grammar::ExprParser::new().parse(&S4).is_ok());
     assert!(grammar::ExprParser::new().parse(&S5).is_ok());
+    assert!(grammar::ExprParser::new().parse(&S6).is_ok());
 }

@@ -242,6 +242,7 @@ pub fn check_expr(tyenv: &mut TyEnv, env: &mut Env, expr: &Expr) -> Result<Type,
                 Err(InferError::UnpackNotAExist(*expr.clone()))
             }
         }
+        Expr::Ifte { cond, trbr, flbr } => todo!(),
     }
 }
 

@@ -114,7 +114,9 @@ pub Expr: Expr = {
     "pack" <expr: Expr> "as" "[" <seals: Comma<(<Name> "=" <Type>)>> "]" "(" <flds: Comma<Type>> ")" =>
         Expr::Pack { expr: Box::new(expr), seals, flds },
     "unpack" <bind: Name> "[" <opens: Comma<Name>> "]" "=" <expr: Expr> "in" <cont: Expr> =>
-        Expr::Unpack { bind, opens, expr: Box::new(expr), cont: Box::new(cont) }
+        Expr::Unpack { bind, opens, expr: Box::new(expr), cont: Box::new(cont) },
+    "if" <cond: Expr> "then" <trbr: Expr> "else" <flbr: Expr> =>
+        Expr::Ifte { cond: Box::new(cond), trbr: Box::new(trbr), flbr: Box::new(flbr) },
 
 }
 

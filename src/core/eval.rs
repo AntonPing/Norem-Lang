@@ -189,5 +189,6 @@ pub fn eval(env: &mut Env, expr: &Expr) -> Result<Value, EvalError> {
             env.pop_back();
             Ok(cont2)
         }
+        Expr::Ifte { cond, trbr, flbr } => todo!(),
     }
 }
