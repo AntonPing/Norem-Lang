@@ -22,6 +22,13 @@ pub fn test_file<S: AsRef<Path>>(path: S) -> Result<String, io::Error> {
         Ok(()) => writeln!(&mut res, "typecheck passed!").unwrap(),
         Err(err) => writeln!(&mut res, "typecheck failed! {:?}", err).unwrap(),
     };
+
+    let val = core::eval::eval_prog(&prog);
+    match val {
+        Ok(val) => writeln!(&mut res, "evaluation result: {:?}", val).unwrap(),
+        Err(err) => writeln!(&mut res, "evaluation failed! {:?}", err).unwrap(),
+    }
+
     Ok(res)
 }
 
@@ -220,6 +227,7 @@ fn test_pair() {
             ],
         }
         typecheck passed!
+        evaluation result: Lit(Int(42))
     "#]];
     expect.assert_eq(&actual)
 }
@@ -359,39 +367,25 @@ fn test_rec_fib() {
                     res: Lit {
                         lit: TyInt,
                     },
-                    body: Let {
-                        bind: RawId(
-                            x,
-                        ),
-                        expr: Prim {
-                            prim: IPrint,
-                            args: [
-                                App {
-                                    func: Var {
-                                        var: RawId(
-                                            fib,
-                                        ),
-                                    },
-                                    args: [
-                                        Lit {
-                                            lit: Int(
-                                                10,
-                                            ),
-                                        },
-                                    ],
-                                },
-                            ],
-                        },
-                        cont: Lit {
-                            lit: Int(
-                                1,
+                    body: App {
+                        func: Var {
+                            var: RawId(
+                                fib,
                             ),
                         },
+                        args: [
+                            Lit {
+                                lit: Int(
+                                    10,
+                                ),
+                            },
+                        ],
                     },
                 },
             ],
         }
         typecheck passed!
+        evaluation result: Lit(Int(55))
     "#]];
     expect.assert_eq(&actual)
 }

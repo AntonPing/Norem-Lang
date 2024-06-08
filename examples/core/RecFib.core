@@ -9,6 +9,5 @@ begin
 end
 function main() -> Int
 begin
-    let x = @iprint(fib(10)) in
-    1
+    fib(10)
 end
