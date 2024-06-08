@@ -1,4 +1,5 @@
 use super::core::{Decl, Expr, Program, Type};
+use crate::common::lit::LitType;
 use crate::common::name::Name;
 use im::{HashMap, HashSet};
 
@@ -242,7 +243,22 @@ pub fn check_expr(tyenv: &mut TyEnv, env: &mut Env, expr: &Expr) -> Result<Type,
                 Err(InferError::UnpackNotAExist(*expr.clone()))
             }
         }
-        Expr::Ifte { cond, trbr, flbr } => todo!(),
+        Expr::Ifte { cond, trbr, flbr } => {
+            let cond_ty = check_expr(tyenv, env, cond)?;
+            let bool_ty = Type::Lit {
+                lit: LitType::TyBool,
+            };
+            if cond_ty != bool_ty {
+                return Err(InferError::CantUnifyType(cond_ty, bool_ty));
+            }
+            let trbr_ty = check_expr(tyenv, env, trbr)?;
+            let flbr_ty = check_expr(tyenv, env, flbr)?;
+            if trbr_ty == flbr_ty {
+                Ok(trbr_ty)
+            } else {
+                Err(InferError::CantUnifyType(trbr_ty, flbr_ty))
+            }
+        }
     }
 }
 

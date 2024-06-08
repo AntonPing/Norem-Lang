@@ -189,6 +189,13 @@ pub fn eval(env: &mut Env, expr: &Expr) -> Result<Value, EvalError> {
             env.pop_back();
             Ok(cont2)
         }
-        Expr::Ifte { cond, trbr, flbr } => todo!(),
+        Expr::Ifte { cond, trbr, flbr } => {
+            let cond = eval(env, cond)?;
+            match cond {
+                Value::Lit(LitVal::Bool(true)) => eval(env, trbr),
+                Value::Lit(LitVal::Bool(false)) => eval(env, flbr),
+                _ => Err(EvalError::Error),
+            }
+        }
     }
 }
