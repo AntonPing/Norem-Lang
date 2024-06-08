@@ -4,7 +4,7 @@ use std::rc::Rc;
 use super::core::{Expr, Type};
 use crate::common::lit::LitVal;
 use crate::common::name::Name;
-use crate::common::prim::Prim;
+use crate::common::prim::{Compare, Prim};
 
 use im::Vector;
 
@@ -55,6 +55,17 @@ pub fn eval(env: &mut Env, expr: &Expr) -> Result<Value, EvalError> {
                 (Prim::IRem, &[Value::Lit(LitVal::Int(arg1)), Value::Lit(LitVal::Int(arg2))]) => {
                     Ok(Value::Lit(LitVal::Int(arg1 % arg2)))
                 }
+                (
+                    Prim::ICmp(cmp),
+                    &[Value::Lit(LitVal::Int(arg1)), Value::Lit(LitVal::Int(arg2))],
+                ) => match cmp {
+                    Compare::Lt => Ok(Value::Lit(LitVal::Bool(arg1 < arg2))),
+                    Compare::Le => Ok(Value::Lit(LitVal::Bool(arg1 <= arg2))),
+                    Compare::Eq => Ok(Value::Lit(LitVal::Bool(arg1 == arg2))),
+                    Compare::Ne => Ok(Value::Lit(LitVal::Bool(arg1 != arg2))),
+                    Compare::Ge => Ok(Value::Lit(LitVal::Bool(arg1 >= arg2))),
+                    Compare::Gt => Ok(Value::Lit(LitVal::Bool(arg1 > arg2))),
+                },
                 (Prim::FNeg, &[Value::Lit(LitVal::Float(arg1))]) => {
                     Ok(Value::Lit(LitVal::Float(-arg1)))
                 }
@@ -74,6 +85,28 @@ pub fn eval(env: &mut Env, expr: &Expr) -> Result<Value, EvalError> {
                     Prim::FDiv,
                     &[Value::Lit(LitVal::Float(arg1)), Value::Lit(LitVal::Float(arg2))],
                 ) => Ok(Value::Lit(LitVal::Float(arg1 / arg2))),
+                (
+                    Prim::FCmp(cmp),
+                    &[Value::Lit(LitVal::Float(arg1)), Value::Lit(LitVal::Float(arg2))],
+                ) => match cmp {
+                    Compare::Lt => Ok(Value::Lit(LitVal::Bool(arg1 < arg2))),
+                    Compare::Le => Ok(Value::Lit(LitVal::Bool(arg1 <= arg2))),
+                    Compare::Eq => Ok(Value::Lit(LitVal::Bool(arg1 == arg2))),
+                    Compare::Ne => Ok(Value::Lit(LitVal::Bool(arg1 != arg2))),
+                    Compare::Ge => Ok(Value::Lit(LitVal::Bool(arg1 >= arg2))),
+                    Compare::Gt => Ok(Value::Lit(LitVal::Bool(arg1 > arg2))),
+                },
+                (
+                    Prim::CCmp(cmp),
+                    &[Value::Lit(LitVal::Char(arg1)), Value::Lit(LitVal::Char(arg2))],
+                ) => match cmp {
+                    Compare::Lt => Ok(Value::Lit(LitVal::Bool(arg1 < arg2))),
+                    Compare::Le => Ok(Value::Lit(LitVal::Bool(arg1 <= arg2))),
+                    Compare::Eq => Ok(Value::Lit(LitVal::Bool(arg1 == arg2))),
+                    Compare::Ne => Ok(Value::Lit(LitVal::Bool(arg1 != arg2))),
+                    Compare::Ge => Ok(Value::Lit(LitVal::Bool(arg1 >= arg2))),
+                    Compare::Gt => Ok(Value::Lit(LitVal::Bool(arg1 > arg2))),
+                },
                 (Prim::IScan | Prim::FScan | Prim::CScan, &[]) => {
                     let mut input = String::new();
                     std::io::stdin()
