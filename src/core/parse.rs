@@ -48,7 +48,7 @@ x
 "#;
 
 static S6: &'static str = r#"
-if true then 42 else 43
+if @icmplt(42, 43) then 42 else 43
 "#;
 
 #[test]

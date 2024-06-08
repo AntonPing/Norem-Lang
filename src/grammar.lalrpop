@@ -1,6 +1,6 @@
 use std::str::FromStr;
 use crate::common::lit::{LitVal, LitType};
-use crate::common::prim::Prim;
+use crate::common::prim::{Compare, Prim};
 use crate::common::name::Name;
 use crate::common::intern::InternStr;
 use crate::core::core::{Expr, Type, Decl, Program};
@@ -43,11 +43,29 @@ pub Prim: Prim = {
     "@imul" => Prim::IMul,
     "@idiv" => Prim::IDiv,
     "@irem" => Prim::IRem,
+    "@icmplt" => Prim::ICmp(Compare::Lt),
+    "@icmple" => Prim::ICmp(Compare::Le),
+    "@icmpeq" => Prim::ICmp(Compare::Eq),
+    "@icmpne" => Prim::ICmp(Compare::Ne),
+    "@icmpgt" => Prim::ICmp(Compare::Gt),
+    "@icmpge" => Prim::ICmp(Compare::Ge),
     "@fneg" => Prim::FNeg,
     "@fadd" => Prim::FAdd,
     "@fsub" => Prim::FSub,
     "@fmul" => Prim::FMul,
     "@fdiv" => Prim::FDiv,
+    "@fcmplt" => Prim::FCmp(Compare::Lt),
+    "@fcmple" => Prim::FCmp(Compare::Le),
+    "@fcmpeq" => Prim::FCmp(Compare::Eq),
+    "@fcmpne" => Prim::FCmp(Compare::Ne),
+    "@fcmpgt" => Prim::FCmp(Compare::Gt),
+    "@fcmpge" => Prim::FCmp(Compare::Ge),
+    "@ccmplt" => Prim::CCmp(Compare::Lt),
+    "@ccmple" => Prim::CCmp(Compare::Le),
+    "@ccmpeq" => Prim::CCmp(Compare::Eq),
+    "@ccmpne" => Prim::CCmp(Compare::Ne),
+    "@ccmpgt" => Prim::CCmp(Compare::Gt),
+    "@ccmpge" => Prim::CCmp(Compare::Ge),
     "@bnot" => Prim::BNot,
     "@band" => Prim::BAnd,
     "@bor" => Prim::BOr,
