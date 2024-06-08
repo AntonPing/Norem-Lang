@@ -223,3 +223,175 @@ fn test_pair() {
     "#]];
     expect.assert_eq(&actual)
 }
+
+#[test]
+fn test_rec_fib() {
+    let actual = test_file(Path::new("./examples/core/RecFib.core")).unwrap();
+    let expect = expect_test::expect![[r#"
+        Program {
+            decls: [
+                Decl {
+                    name: RawId(
+                        fib,
+                    ),
+                    gens: None,
+                    pars: [
+                        (
+                            RawId(
+                                n,
+                            ),
+                            Lit {
+                                lit: TyInt,
+                            },
+                        ),
+                    ],
+                    res: Lit {
+                        lit: TyInt,
+                    },
+                    body: Ifte {
+                        cond: Prim {
+                            prim: ICmp(
+                                Lt,
+                            ),
+                            args: [
+                                Var {
+                                    var: RawId(
+                                        n,
+                                    ),
+                                },
+                                Lit {
+                                    lit: Int(
+                                        1,
+                                    ),
+                                },
+                            ],
+                        },
+                        trbr: Lit {
+                            lit: Int(
+                                0,
+                            ),
+                        },
+                        flbr: Ifte {
+                            cond: Prim {
+                                prim: ICmp(
+                                    Eq,
+                                ),
+                                args: [
+                                    Var {
+                                        var: RawId(
+                                            n,
+                                        ),
+                                    },
+                                    Lit {
+                                        lit: Int(
+                                            1,
+                                        ),
+                                    },
+                                ],
+                            },
+                            trbr: Lit {
+                                lit: Int(
+                                    1,
+                                ),
+                            },
+                            flbr: Prim {
+                                prim: IAdd,
+                                args: [
+                                    App {
+                                        func: Var {
+                                            var: RawId(
+                                                fib,
+                                            ),
+                                        },
+                                        args: [
+                                            Prim {
+                                                prim: ISub,
+                                                args: [
+                                                    Var {
+                                                        var: RawId(
+                                                            n,
+                                                        ),
+                                                    },
+                                                    Lit {
+                                                        lit: Int(
+                                                            1,
+                                                        ),
+                                                    },
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                    App {
+                                        func: Var {
+                                            var: RawId(
+                                                fib,
+                                            ),
+                                        },
+                                        args: [
+                                            Prim {
+                                                prim: ISub,
+                                                args: [
+                                                    Var {
+                                                        var: RawId(
+                                                            n,
+                                                        ),
+                                                    },
+                                                    Lit {
+                                                        lit: Int(
+                                                            2,
+                                                        ),
+                                                    },
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+                Decl {
+                    name: RawId(
+                        main,
+                    ),
+                    gens: None,
+                    pars: [],
+                    res: Lit {
+                        lit: TyInt,
+                    },
+                    body: Let {
+                        bind: RawId(
+                            x,
+                        ),
+                        expr: Prim {
+                            prim: IPrint,
+                            args: [
+                                App {
+                                    func: Var {
+                                        var: RawId(
+                                            fib,
+                                        ),
+                                    },
+                                    args: [
+                                        Lit {
+                                            lit: Int(
+                                                10,
+                                            ),
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                        cont: Lit {
+                            lit: Int(
+                                1,
+                            ),
+                        },
+                    },
+                },
+            ],
+        }
+        typecheck passed!
+    "#]];
+    expect.assert_eq(&actual)
+}
