@@ -146,6 +146,9 @@ pub fn check_expr(tyenv: &mut TyEnv, env: &mut Env, expr: &Expr) -> Result<Type,
                 Err(InferError::SelNotATuple(*expr.clone()))
             }
         }
+        Expr::Cons { cons, gens, flds } => todo!(),
+        Expr::Fld { expr, fld } => todo!(),
+        Expr::Match { expr, bind, brchs } => todo!(),
         Expr::Letrec { decls, cont } => {
             let mut env2 = env.clone();
             for decl in decls.iter() {

@@ -199,6 +199,9 @@ pub fn eval(env: &mut Env, expr: &Expr) -> Result<Value, EvalError> {
                 Err(EvalError::SelNotATuple(expr_val))
             }
         }
+        Expr::Cons { cons, gens, flds } => todo!(),
+        Expr::Fld { expr, fld } => todo!(),
+        Expr::Match { expr, bind, brchs } => todo!(),
         Expr::Letrec { decls, cont } => {
             let env2 = Rc::new(RefCell::new(env.clone()));
             for decl in decls {

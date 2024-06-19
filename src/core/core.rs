@@ -41,6 +41,27 @@ pub enum Expr {
         expr: Box<Expr>,
         idx: usize,
     },
+    /// TC[T1, ..., Tn] { x1: E1, ..., xn: En }
+    Cons {
+        cons: Name,
+        gens: Vec<Type>,
+        flds: Vec<(Name, Expr)>,
+    },
+    /// E.bar
+    Fld {
+        expr: Box<Expr>,
+        fld: Name,
+    },
+    /// match E as x with
+    /// | C1 => E1
+    /// | ......
+    /// | Cn => En
+    /// end
+    Match {
+        expr: Box<Expr>,
+        bind: Name,
+        brchs: Vec<(Name, Expr)>,
+    },
     /// letrec D1 ... Dn in E end
     Letrec {
         decls: Vec<Decl>,

@@ -59,7 +59,10 @@ end
 
 function map[T, U](f: fn(T) -> U, xs: List[T]) -> List[U]
 begin
-    42
+    match xs as ys with
+    | Nil => Nil[T] {}
+    | Cons => Cons[T] { head: f(ys.head), tail: map[T, U](f, ys.tail) }
+    end
 end
 "#;
 
@@ -80,5 +83,6 @@ fn grammar_test() {
     assert!(grammar::ExprParser::new().parse(&S4).is_ok());
     assert!(grammar::ExprParser::new().parse(&S5).is_ok());
     assert!(grammar::ExprParser::new().parse(&S6).is_ok());
+
     assert!(grammar::ProgramParser::new().parse(&S7).is_ok());
 }

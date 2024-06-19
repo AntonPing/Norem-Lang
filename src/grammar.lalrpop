@@ -120,6 +120,8 @@ pub Expr: Expr = {
                         Expr::App { func: Box::new(acc), args },
                     Expr::Sel { expr: _, idx } =>
                         Expr::Sel { expr: Box::new(acc), idx },
+                    Expr::Fld { expr: _, fld } =>
+                        Expr::Fld { expr: Box::new(acc), fld },
                     Expr::Inst { expr: _, typs } =>
                         Expr::Inst { expr: Box::new(acc), typs },
                     _ => unsafe { std::hint::unreachable_unchecked() },
@@ -130,6 +132,8 @@ pub Expr: Expr = {
         Expr::Let { bind, expr: Box::new(expr), cont: Box::new(cont)},
     "fn" "(" <pars: Comma<(<LName> ":" <Type>)>> ")" "=>" <body: Expr> =>
         Expr::Func { pars, body: Box::new(body) },
+    "match" <expr: Expr> "as" <bind: LName> "with" <brchs: ("|" <UName> "=>" <Expr>)*> "end" =>
+        Expr::Match { expr: Box::new(expr), bind, brchs },
     "letrec" <decls: Decl*> "in" <cont: Expr> "end" =>
         Expr::Letrec { decls, cont: Box::new(cont) },
     "pack" <expr: Expr> "as" "[" <seals: Comma<(<UName> "=" <Type>)>> "]" "(" <flds: Comma<Type>> ")" =>
@@ -144,6 +148,8 @@ pub Expr: Expr = {
 pub ExprLeft: Expr = {
     <lit: LitVal> => Expr::Lit { lit },
     <var: LName> => Expr::Var { var },
+    <cons: UName> "[" <gens: Comma<Type>> "]" "{" <flds: Comma<(<LName> ":" <Expr>)>> "}" =>
+        Expr::Cons { cons, gens, flds },
     <prim: Prim> "(" <args: Comma<Expr>> ")" => Expr::Prim { prim, args},
     "(" <flds: Comma<Expr>> ")" => {
         match flds.len() {
@@ -160,6 +166,8 @@ pub ExprRight: Expr = {
         Expr::App { func: Box::new(Expr::Lit { lit : LitVal::Int(0)}), args },
     "." <idx: Nat> =>
         Expr::Sel { expr: Box::new(Expr::Lit { lit : LitVal::Int(0)}), idx },
+    "." <fld: LName> =>
+        Expr::Fld { expr: Box::new(Expr::Lit { lit : LitVal::Int(0)}), fld },
     "[" <typs: Comma<Type>> "]" =>
         Expr::Inst { expr: Box::new(Expr::Lit { lit : LitVal::Int(0)}), typs },
 }
