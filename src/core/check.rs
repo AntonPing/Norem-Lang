@@ -45,6 +45,7 @@ pub fn check_typ(tyenv: &mut TyEnv, typ: &Type) -> Result<(), InferError> {
             }
             Ok(())
         }
+        Type::Cons { cons, args } => todo!(),
         Type::Forall { gens, pars, res } => {
             let mut tyenv2 = tyenv.clone();
             for gen in gens.iter() {
@@ -329,6 +330,7 @@ pub fn subst(map: &mut HashMap<Name, Type>, typ: &Type) -> Type {
             let flds = flds.iter().map(|fld| subst(map, fld)).collect();
             Type::Tup { flds }
         }
+        Type::Cons { cons, args } => todo!(),
         Type::Forall { gens, pars, res } => {
             let mut map2 = map.clone();
             for gen in gens.iter() {

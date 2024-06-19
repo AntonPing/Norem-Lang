@@ -90,6 +90,11 @@ pub enum Type {
     Tup {
         flds: Vec<Type>,
     },
+    /// TC[T1, ..., Tn]
+    Cons {
+        cons: Name,
+        args: Option<Vec<Type>>,
+    },
     /// fn[X1, ..., Xn](T1, ..., Tn) -> U
     Forall {
         gens: Vec<Name>,

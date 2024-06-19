@@ -54,10 +54,10 @@ if @icmplt(42, 43) then 42 else 43
 static S7: &'static str = r#"
 datatype List[T] where
 | Nil {}
-| Cons { head: T, tail: T }
+| Cons { head: T, tail: List[T] }
 end
 
-function map[T, U](f: fn(T) -> U, xs: T) -> U
+function map[T, U](f: fn(T) -> U, xs: List[T]) -> List[U]
 begin
     42
 end
