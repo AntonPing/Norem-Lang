@@ -93,7 +93,7 @@ pub Type: Type = {
     <lit: LitType> => Type::Lit { lit },
     <var: UName> => Type::Var { var },
     <cons: UName> <args: ("[" <Comma<Type>> "]")> =>
-        Type::Cons { cons, args: Some(args) },
+        Type::Cons { cons, args },
     "fn" <gens: ("[" <Comma<UName>> "]")?> "(" <pars: Comma<Type>> ")" "->" <res: Type> =>
         match gens {
             None => Type::Func { pars, res: Box::new(res) },
@@ -171,12 +171,12 @@ pub Decl: Decl = {
 }
 
 pub Data: Data = {
-    "datatype" <name: UName> <gens: ("[" <Comma<UName>> "]")?> "where" <cons: ("|" <Cons>)* > "end" =>
+    "datatype" <name: UName> <gens: ("[" <Comma<UName>> "]")> "where" <cons: ("|" <Cons>)* > "end" =>
         Data { name, gens, cons },
 }
 
 pub Cons: Cons = {
-    <name: UName> <flds: ("{" <Comma<(<LName> ":" <Type>)>> "}")?>  =>
+    <name: UName> "{" <flds: Comma<(<LName> ":" <Type>)>> "}" =>
         Cons { name, flds },
 }
 

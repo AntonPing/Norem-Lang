@@ -93,7 +93,7 @@ pub enum Type {
     /// TC[T1, ..., Tn]
     Cons {
         cons: Name,
-        args: Option<Vec<Type>>,
+        args: Vec<Type>,
     },
     /// fn[X1, ..., Xn](T1, ..., Tn) -> U
     Forall {
@@ -129,7 +129,7 @@ pub struct Decl {
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Data {
     pub name: Name,
-    pub gens: Option<Vec<Name>>,
+    pub gens: Vec<Name>,
     pub cons: Vec<Cons>,
 }
 
@@ -137,7 +137,7 @@ pub struct Data {
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Cons {
     pub name: Name,
-    pub flds: Option<Vec<(Name, Type)>>,
+    pub flds: Vec<(Name, Type)>,
 }
 
 /// toplevel program
