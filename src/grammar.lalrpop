@@ -3,7 +3,7 @@ use crate::common::lit::{LitVal, LitType};
 use crate::common::prim::{Compare, Prim};
 use crate::common::name::Name;
 use crate::common::intern::InternStr;
-use crate::core::core::{Expr, Type, Decl, Program};
+use crate::core::core::{Expr, Type, Decl, Data, Cons, Program};
 
 grammar;
 
@@ -164,10 +164,20 @@ pub ExprRight: Expr = {
 pub Decl: Decl = {
     "function" <name: Name> <gens: ("[" <Comma<Name>> "]")?> "(" <pars: Comma<(<Name> ":" <Type>)>> ")"
         "->" <res: Type> "begin" <body: Expr> "end" =>
-            Decl { name, gens, pars, res, body }
+            Decl { name, gens, pars, res, body },
+}
+
+pub Data: Data = {
+    "datatype" <name: Name> <gens: ("[" <Comma<Name>> "]")?> "where" <cons: ("|" <Cons>)* > "end" =>
+        Data { name, gens, cons },
+}
+
+pub Cons: Cons = {
+    <name: Name> <flds: ("{" <Comma<(<Name> ":" <Type>)>> "}")?>  =>
+        Cons { name, flds },
 }
 
 pub Program: Program = {
-    <decls: Decl*> =>
-        Program { decls }
+    <datas: Data*> <decls: Decl*> =>
+        Program { datas, decls }
 }

@@ -116,8 +116,28 @@ pub struct Decl {
     pub body: Expr,
 }
 
+/// datatype D[T1, ..., Tn] where
+/// | C1 { x1: T1, ..., xn: Tn }
+/// | ......
+/// | Cn { x1: T1, ..., xn: Tn }
+/// end
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub struct Data {
+    pub name: Name,
+    pub gens: Option<Vec<Name>>,
+    pub cons: Vec<Cons>,
+}
+
+/// C { x1: T1, ..., xn: Tn }
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub struct Cons {
+    pub name: Name,
+    pub flds: Option<Vec<(Name, Type)>>,
+}
+
 /// toplevel program
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Program {
+    pub datas: Vec<Data>,
     pub decls: Vec<Decl>,
 }

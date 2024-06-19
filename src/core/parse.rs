@@ -51,6 +51,18 @@ static S6: &'static str = r#"
 if @icmplt(42, 43) then 42 else 43
 "#;
 
+static S7: &'static str = r#"
+datatype List[T] where
+| Nil {}
+| Cons { head: T, tail: T }
+end
+
+function map[T, U](f: fn(T) -> U, xs: T) -> U
+begin
+    42
+end
+"#;
+
 #[test]
 fn grammar_test() {
     assert_eq!(grammar::BoolParser::new().parse("false").unwrap(), false);
@@ -68,4 +80,5 @@ fn grammar_test() {
     assert!(grammar::ExprParser::new().parse(&S4).is_ok());
     assert!(grammar::ExprParser::new().parse(&S5).is_ok());
     assert!(grammar::ExprParser::new().parse(&S6).is_ok());
+    assert!(grammar::ProgramParser::new().parse(&S7).is_ok());
 }
