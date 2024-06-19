@@ -70,7 +70,7 @@ fn grammar_test() {
     assert!(grammar::FloatParser::new().parse("-114.514").unwrap() - -114.514 < 0.00001);
     assert_eq!(grammar::CharParser::new().parse("'a'").unwrap(), 'a');
     assert_eq!(
-        grammar::NameParser::new().parse("x").unwrap(),
+        grammar::LNameParser::new().parse("x").unwrap(),
         crate::common::name::Name::RawId(crate::common::intern::InternStr::new("x"))
     );
 

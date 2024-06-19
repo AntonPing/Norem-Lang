@@ -20,7 +20,8 @@ pub Bool: bool = {
     "true" => true,
 };
 
-pub Name: Name = <s:r"[_a-zA-Z][_a-zA-Z0-9]*"> => Name::RawId(InternStr::new(s));
+pub LName: Name = <s:r"[_a-z][_a-zA-Z0-9]*"> => Name::RawId(InternStr::new(s));
+pub UName: Name = <s:r"[A-Z][_a-zA-Z0-9]*"> => Name::RawId(InternStr::new(s));
 
 pub LitVal: LitVal = {
     <x: Int> => LitVal::Int(x),
@@ -90,13 +91,13 @@ Comma<T>: Vec<T> = {
 
 pub Type: Type = {
     <lit: LitType> => Type::Lit { lit },
-    <var: Name> => Type::Var { var },
-    "fn" <gens: ("[" <Comma<Name>> "]")?> "(" <pars: Comma<Type>> ")" "->" <res: Type> =>
+    <var: UName> => Type::Var { var },
+    "fn" <gens: ("[" <Comma<UName>> "]")?> "(" <pars: Comma<Type>> ")" "->" <res: Type> =>
         match gens {
             None => Type::Func { pars, res: Box::new(res) },
             Some(gens) => Type::Forall { gens, pars, res: Box::new(res) },
         },
-    <seals: ("[" <Comma<Name>> "]")?> "(" <flds: Comma<Type>> ")" =>
+    <seals: ("[" <Comma<UName>> "]")?> "(" <flds: Comma<Type>> ")" =>
         match seals {
             None => match flds.len() {
                 0 => Type::Lit { lit: LitType::TyUnit },
@@ -123,15 +124,15 @@ pub Expr: Expr = {
                 }
             }
         ),
-    "let" <bind: Name> "=" <expr: Expr> "in" <cont: Expr> =>
+    "let" <bind: LName> "=" <expr: Expr> "in" <cont: Expr> =>
         Expr::Let { bind, expr: Box::new(expr), cont: Box::new(cont)},
-    "fn" "(" <pars: Comma<(<Name> ":" <Type>)>> ")" "=>" <body: Expr> =>
+    "fn" "(" <pars: Comma<(<LName> ":" <Type>)>> ")" "=>" <body: Expr> =>
         Expr::Func { pars, body: Box::new(body) },
     "letrec" <decls: Decl*> "in" <cont: Expr> "end" =>
         Expr::Letrec { decls, cont: Box::new(cont) },
-    "pack" <expr: Expr> "as" "[" <seals: Comma<(<Name> "=" <Type>)>> "]" "(" <flds: Comma<Type>> ")" =>
+    "pack" <expr: Expr> "as" "[" <seals: Comma<(<UName> "=" <Type>)>> "]" "(" <flds: Comma<Type>> ")" =>
         Expr::Pack { expr: Box::new(expr), seals, flds },
-    "unpack" <bind: Name> "[" <opens: Comma<Name>> "]" "=" <expr: Expr> "in" <cont: Expr> =>
+    "unpack" <bind: LName> "[" <opens: Comma<UName>> "]" "=" <expr: Expr> "in" <cont: Expr> =>
         Expr::Unpack { bind, opens, expr: Box::new(expr), cont: Box::new(cont) },
     "if" <cond: Expr> "then" <trbr: Expr> "else" <flbr: Expr> =>
         Expr::Ifte { cond: Box::new(cond), trbr: Box::new(trbr), flbr: Box::new(flbr) },
@@ -140,7 +141,7 @@ pub Expr: Expr = {
 
 pub ExprLeft: Expr = {
     <lit: LitVal> => Expr::Lit { lit },
-    <var: Name> => Expr::Var { var },
+    <var: LName> => Expr::Var { var },
     <prim: Prim> "(" <args: Comma<Expr>> ")" => Expr::Prim { prim, args},
     "(" <flds: Comma<Expr>> ")" => {
         match flds.len() {
@@ -162,18 +163,18 @@ pub ExprRight: Expr = {
 }
 
 pub Decl: Decl = {
-    "function" <name: Name> <gens: ("[" <Comma<Name>> "]")?> "(" <pars: Comma<(<Name> ":" <Type>)>> ")"
+    "function" <name: LName> <gens: ("[" <Comma<UName>> "]")?> "(" <pars: Comma<(<LName> ":" <Type>)>> ")"
         "->" <res: Type> "begin" <body: Expr> "end" =>
             Decl { name, gens, pars, res, body },
 }
 
 pub Data: Data = {
-    "datatype" <name: Name> <gens: ("[" <Comma<Name>> "]")?> "where" <cons: ("|" <Cons>)* > "end" =>
+    "datatype" <name: UName> <gens: ("[" <Comma<UName>> "]")?> "where" <cons: ("|" <Cons>)* > "end" =>
         Data { name, gens, cons },
 }
 
 pub Cons: Cons = {
-    <name: Name> <flds: ("{" <Comma<(<Name> ":" <Type>)>> "}")?>  =>
+    <name: UName> <flds: ("{" <Comma<(<LName> ":" <Type>)>> "}")?>  =>
         Cons { name, flds },
 }
 
